@@ -149,6 +149,10 @@
 
 	iptables -t nat -A OUTPUT -p tcp -d 10.254.0.0/16 -j REDIRECT --to-ports 9040
 	
+Другой вариант (мне больше нравится, отличается PREROUTING и номерами портов)
+	
+	iptables -t nat -A PREROUTING -d 10.254.0.0/16 -p tcp -m multiport --dports 80,443 -j REDIRECT --to-ports 9040
+	
 Сами .onion ресурсы должны разрешатся dns тора
 
 
@@ -182,6 +186,8 @@ http://rover-seti.blogspot.ru/2015/11/tor-openwrt.html
 https://habrahabr.ru/post/270657/
 
 https://geektimes.ru/post/129603/
+
+https://trac.torproject.org/projects/tor/wiki/doc/TransparentProxy#TransparentlyDoingDNSandRoutingfor.onionTraffic
 
 
 
