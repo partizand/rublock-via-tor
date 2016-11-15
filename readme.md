@@ -141,13 +141,17 @@
 	
 После установки пакета необходимо “завернуть” трафик на прозрачный прокси сервер:
 
-	iptables -t nat -A PREROUTING -p tcp --match-set rublock --dport 80 -j REDIRECT --to-ports 9040
+	iptables -t nat -A PREROUTING -p tcp -m set --match-set rublock --dport 80 -j REDIRECT --to-ports 9040
+	
+	iptables -t nat -A PREROUTING -p tcp --dport 80 -m set --match-set rublock dst,src -j REDIRECT --to-ports 9040
 
 Что означает – перебрасывать трафик хостов rublock идущий на 80-й порт на порт 9040, на котором как раз и находится прозрачный прокси.
 
 Для перенаправления .onion ресурсов на прокси тора нужно добавить правило
 
 	iptables -t nat -A OUTPUT -p tcp -d 10.254.0.0/16 -j REDIRECT --to-ports 9040
+	
+	iptables -t nat -A PREROUTING -p tcp -d 10.254.0.0/16 -j REDIRECT --to-ports 9040
 	
 Другой вариант (мне больше нравится, отличается PREROUTING и номерами портов)
 	
