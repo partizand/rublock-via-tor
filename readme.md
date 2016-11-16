@@ -87,11 +87,9 @@
 Настройка прошивки
 ------------------
 
-* Отредактируйте iptables
+* Отредактируйте /opt/etc/init.d/S10iptables:
 
-/opt/etc/init.d/S10iptables:
-
-	#!/bin/sh
+	```#!/bin/sh
 
 	case "$1" in
 	start|update)
@@ -118,11 +116,11 @@
 			echo "Usage: $0 {start|stop|update}"
 			exit 1
 			;;
-	esac
+	esac```
 
-Файл может содержать другие команды которые трогать не нужно. Нужно добавить блок
+	Файл может содержать другие команды которые трогать не нужно. Нужно добавить блок
 
-	# Create new rublock ipset and fill it with IPs from list
+	```# Create new rublock ipset and fill it with IPs from list
 	if [ ! -z "$(ipset --swap rublock rublock 2>&1 | grep 'given name does not exist')" ] ; then
 			ipset -N rublock iphash
 			for IP in $(cat /opt/etc/rublock.ips) ; do
@@ -132,13 +130,13 @@
 	# rublock redirect to tor
 	iptables -t nat -A PREROUTING -p tcp --dport 80 -m set --match-set rublock dst,src -j REDIRECT --to-ports 9040
 	# .onion redirect to tor
-	iptables -t nat -A PREROUTING -p tcp -d 10.254.0.0/16 -j REDIRECT --to-ports 9040
+	iptables -t nat -A PREROUTING -p tcp -d 10.254.0.0/16 -j REDIRECT --to-ports 9040```
 
-Вариант перенаправления всех портов заблокированных ресурсов в тор прокси, поставил, нужно пробовать
+	Вариант перенаправления всех портов заблокированных ресурсов в тор прокси, поставил, нужно пробовать
 	
-	iptables -t nat -A PREROUTING -p tcp -m set --match-set rublock dst -j REDIRECT --to-ports 9040
+	`iptables -t nat -A PREROUTING -p tcp -m set --match-set rublock dst -j REDIRECT --to-ports 9040`
 	
-OUTPUT не работает
+	OUTPUT не работает
 	
 * В веб-интерфейсе роутера на странице Customization > Scripts отредактируйте поле Run After Router Started, раскоментировав две строчки:
 
@@ -147,24 +145,23 @@ OUTPUT не работает
 
 * На странице LAN > DHCP Server допишите в поле Пользовательский файл конфигурации "dnsmasq.conf" строчку:
 
-
 	`conf-file=/opt/etc/rublock.dnsmasq`
 
 * На этой же странице, допишите в поле Пользовательский файл конфигурации "dnsmasq.servers" строчку:
 
 	`server=/onion/127.0.0.1#9053`
 	
-Добавляет сервер dns для разрешения имен домена .onion. Будут возвращаться виртуальные адреса из указанной в настройке tor подсети.
+	Добавляет сервер dns для разрешения имен домена .onion. Будут возвращаться виртуальные адреса из указанной в настройке tor подсети.
 
 * На странице Дополнительно - Администрирование - Сервисы - Сервис Cron (планировщик)? включить. Добавить строчку:
 
 	`1 3 * * 0 blupdate.lua`
 	
-Будет происходить обновление списка ресурсов каждое воскресенье в 3 часа ночи. Но изменения подействуют только после перезагрузки.
+	Будет происходить обновление списка ресурсов каждое воскресенье в 3 часа ночи. Но изменения подействуют только после перезагрузки.
 
-Лучше конечно при старте бы обновлять, но не знаю как.
+	Лучше конечно при старте бы обновлять, но не знаю как.
 
-Перегрузите роутер для того, чтобы настройки вступили в силу.
+* Перегрузите роутер для того, чтобы настройки вступили в силу.
 
 Полезные ссылки
 ---------------
