@@ -138,7 +138,7 @@
 	
 OUTPUT не работает
 	
-* В веб-интерфейсе роутера на странице Customization > Scripts отредактируйте поле Run After Router Started, раскоментировав две строчки:
+В веб-интерфейсе роутера на странице Customization > Scripts отредактируйте поле Run After Router Started, раскоментировав две строчки:
 
     modprobe ip_set_hash_ip
     modprobe xt_set
