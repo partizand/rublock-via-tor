@@ -87,7 +87,7 @@
 Настройка прошивки
 ------------------
 
-* Отредактируйте /opt/etc/init.d/S10iptables:
+Отредактируйте /opt/etc/init.d/S10iptables:
 
 
 	#!/bin/sh
@@ -141,8 +141,8 @@ OUTPUT не работает
 	
 * В веб-интерфейсе роутера на странице Customization > Scripts отредактируйте поле Run After Router Started, раскоментировав две строчки:
 
-    `modprobe ip_set_hash_ip
-    modprobe xt_set`
+    `modprobe ip_set_hash_ip`
+    `modprobe xt_set`
 
 * На странице LAN > DHCP Server допишите в поле Пользовательский файл конфигурации "dnsmasq.conf" строчку:
 
@@ -150,6 +150,7 @@ OUTPUT не работает
 	`conf-file=/opt/etc/rublock.dnsmasq`
 
 * На этой же странице, допишите в поле Пользовательский файл конфигурации "dnsmasq.servers" строчку:
+
 	
 
 	server=/onion/127.0.0.1#9053
