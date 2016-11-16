@@ -89,6 +89,7 @@
 
 * Отредактируйте /opt/etc/init.d/S10iptables:
 
+
 	#!/bin/sh
 
 	case "$1" in
@@ -144,6 +145,7 @@ OUTPUT не работает
     modprobe xt_set
 
 * На странице LAN > DHCP Server допишите в поле Пользовательский файл конфигурации "dnsmasq.conf" строчку:
+
 
 	conf-file=/opt/etc/rublock.dnsmasq
 
