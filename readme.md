@@ -142,8 +142,8 @@ OUTPUT не работает
 	
 * В веб-интерфейсе роутера на странице Customization > Scripts отредактируйте поле Run After Router Started, раскоментировав две строчки:
 
-    `modprobe ip_set_hash_ip`
-    `modprobe xt_set`
+    ```modprobe ip_set_hash_ip
+    modprobe xt_set```
 
 * На странице LAN > DHCP Server допишите в поле Пользовательский файл конфигурации "dnsmasq.conf" строчку:
 
