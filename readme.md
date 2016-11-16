@@ -16,9 +16,7 @@
 
 * Вопрос возможности использования tor с процессором роутера остается открытым.
 
-* Схема не работает при подключении к роутеру по VPN при заворачивании всего траффика через него. Т.к. пакеты от VPN видимо не проходят PREROUTING.
-
-* Firefox почему-то не открывает onion, хотя IE и chrome открывают без проблем
+* Firefox почему-то не открывает onion, хотя IE и Chrome открывают без проблем
 
 Требования
 ----------
@@ -48,7 +46,7 @@
 
     blupdate.lua
 
-В результате работы скрипта будут сформированы файлы /opt/etc/rublock.dnsmasq и /opt/etc/rublock.ips, которые будут использованы далее. Повторно запускать скрипт имеет смысл только для обновления списка заблокированных ресурсов, например, раз в месяц.
+В результате работы скрипта будут сформированы файлы /opt/etc/rublock.dnsmasq и /opt/etc/rublock.ips, которые будут использованы далее. Скрипт добавляется в cron (см. ниже).
 
 На самом деле перестройка файла rublock.ips бессмысленна без рестарта /opt/etc/init.d/S10iptables. Который на основе него делает ipset. А стартует он только по перезагрузке. Так что при изменении ip ресурса нужно будет перезагружать роутер. Так же dnsmasq не обновляет список без рестарта. Или я не так понял (что скорее всего)
 
@@ -65,11 +63,16 @@
 
 	ExcludeExitNodes {RU} # Заблокировать выходные ноды из России
 	AutomapHostsOnResolve 1
+	#TransListenAddress 10.8.0.1 # Нужен только для VPN
 	TransPort 9040
 	DNSPort 9053
 	VirtualAddrNetwork 10.254.0.0/16  # виртуальные адреса для .onion ресурсов
 
 Тем самым прозрачный прокси будет слушать порт 9040, dns тора будет висеть на порту 9053 (Но только для 127.0.0.1).
+
+Если нужна работа для клиентов VPN сервера, расскоментируйте строку, указав в ней адрес VPN сервера роутера (можно найти [здесь] (http://my.router/vpnsrv.asp#cfg) Локальный IP-адрес VPN-сервера)
+
+	#TransListenAddress 10.8.0.1 # Нужен только для VPN
 
 Если нужен прокси tor, раскомментируйте и исправьте IP в строке (необязательно, схема будет работать и без этого)
     
@@ -105,9 +108,9 @@
 					done
 			fi
 			# rublock redirect to tor
-            iptables -t nat -A PREROUTING -p tcp --dport 80 -m set --match-set rublock dst,src -j REDIRECT --to-ports 9040
-            # .onion redirect to tor
-            iptables -t nat -A PREROUTING -p tcp -d 10.254.0.0/16 -j REDIRECT --to-ports 9040
+			iptables -t nat -A PREROUTING -p tcp -m set --match-set rublock dst -j REDIRECT --to-ports 9040
+			# .onion redirect to tor
+			iptables -t nat -A PREROUTING -p tcp -d 10.254.0.0/16 -j REDIRECT --to-ports 9040
 			;;
 	stop)
 			# delete iptables custom rules
@@ -131,17 +134,11 @@
 			done
 	fi
 	# rublock redirect to tor
-	iptables -t nat -A PREROUTING -p tcp --dport 80 -m set --match-set rublock dst,src -j REDIRECT --to-ports 9040
+	iptables -t nat -A PREROUTING -p tcp -m set --match-set rublock dst -j REDIRECT --to-ports 9040
 	# .onion redirect to tor
 	iptables -t nat -A PREROUTING -p tcp -d 10.254.0.0/16 -j REDIRECT --to-ports 9040
 	```
 
-	Вариант перенаправления всех портов заблокированных ресурсов в тор прокси, поставил, нужно пробовать
-	
-	`iptables -t nat -A PREROUTING -p tcp -m set --match-set rublock dst -j REDIRECT --to-ports 9040`
-	
-	OUTPUT не работает
-	
 * В веб-интерфейсе роутера на странице Customization > Scripts отредактируйте поле Run After Router Started, раскоментировав две строчки:
 
     ```
