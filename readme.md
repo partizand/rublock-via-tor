@@ -99,7 +99,7 @@
 ------------------
 
 В веб-интерфейсе роутера на странице [Персонализация > Скрипты] (http://my.router/Advanced_Scripts_Content.asp)
-добавит в "Выполнить после перезапуска правил брандмауэра":
+добавит в "Выполнить после перезапуска правил брандмауэра" (/etc/storage/post_iptables_script.sh):
 
 	```
 	# rublock redirect to tor
@@ -109,24 +109,24 @@
 	```
 
 
-* Там же отредактируйте поле "Выполнить после полного запуска маршрутизатора:", раскоментировав две строчки и добавив:
+* Там же отредактируйте поле "Выполнить после полного запуска маршрутизатора:", раскоментировав две строчки и добавив (/etc/storage/started_script.sh):
 
     ```
 	modprobe ip_set_hash_ip
     modprobe xt_set
 	
 	ipset -N onion iphash
+	ipset -N rublock iphash
 	
 	# Create new rublock ipset and fill it with IPs from list
 	if [ ! -z "$(ipset --swap rublock rublock 2>&1 | grep 'given name does not exist')" ] ; then
-			ipset -N rublock iphash
 			for IP in $(cat /opt/etc/rublock.ips) ; do
 					ipset -A rublock $IP
 			done
 	fi
 	```
 
-* На странице [LAN > DHCP-сервер] (http://my.router/Advanced_DHCP_Content.asp) допишите в поле "Пользовательский файл конфигурации dnsmasq.conf" строчку:
+* На странице [LAN > DHCP-сервер] (http://my.router/Advanced_DHCP_Content.asp) допишите в поле "Пользовательский файл конфигурации dnsmasq.conf" (/etc/storage/dnsmasq/dnsmasq.conf):
 
 	```
 	server=/onion/127.0.0.1#9053
