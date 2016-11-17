@@ -7,12 +7,13 @@ local config = {
     neverGroupDomains = { ["livejournal.com"] = true, ["facebook.com"] = true , ["vk.com"] = true },
     stripWww = true,
     convertIdn = false,
-    altNsLookups = true, -- отправлять DNS запросы заблокированных доменов через отдельный DNS
+    altNsLookups = false, -- отправлять DNS запросы заблокированных доменов через отдельный DNS
     blMinimumEntries = 1000, -- костыль если список получился короче, значит что-то пошло не так и конфиги не обновляем
     dnsmasqConfigPath = "/opt/etc/rublock.dnsmasq",
     ipsetConfigPath = "/opt/etc/rublock.ips",
     ipsetDns = "rublock",
-    altDNSAddr = "8.8.8.8"
+    altDNSAddr = "8.8.8.8" -- google dns
+	-- altDNSAddr = "127.0.0.1#9053" -- если хотите через tor разрешать dns
 }
 
 

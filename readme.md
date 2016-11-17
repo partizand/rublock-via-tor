@@ -42,6 +42,8 @@
     wget --no-check-certificate -O /opt/bin/blupdate.lua https://raw.githubusercontent.com/partizand/rublock-via-tor/master/opt/bin/blupdate.lua
     chmod +x /opt/bin/blupdate.lua
 
+Обработка dns запросов имен заблокированных сайтов через провайдера/google/tordns включается отключается в начале скрипта /opt/bin/blupdate.lua. По умолчанию поставил через провайдера, т.к. dnsmasq Будет проще
+	
 Запустите скрипт на исполнение:
 
     blupdate.lua
@@ -62,18 +64,23 @@
 
 Для настройки прозрачного прокси в Tor в конфигурационном файле /opt/etc/tor/torrc добавляем в конец:
 
-	ExcludeExitNodes {RU} # Заблокировать выходные ноды из России
 	AutomapHostsOnResolve 1
-	#TransListenAddress 10.8.0.1 # Нужен только для VPN
-	TransPort 9040
+	TransPort 127.0.0.1:9040 # Прозрачный прокси
+	#TransPort 10.8.0.1:9040 # Нужно только для работы через VPN
 	DNSPort 9053
+	ExcludeExitNodes {RU}
 	VirtualAddrNetwork 10.254.0.0/16  # виртуальные адреса для .onion ресурсов
 
 Тем самым прозрачный прокси будет слушать порт 9040, dns тора будет висеть на порту 9053 (Но только для 127.0.0.1).
 
+Готовый файл конфигурации можно скачать из репозитория
+
+	wget --no-check-certificate -O /opt/etc/tor/torrc https://raw.githubusercontent.com/partizand/rublock-via-tor/master/opt/etc/tor/torrc
+
+
 Если нужна работа для клиентов VPN сервера, расскоментируйте строку, указав в ней адрес VPN сервера роутера (можно найти [здесь] (http://my.router/vpnsrv.asp#cfg) "Локальный IP-адрес VPN-сервера")
 
-	#TransListenAddress 10.8.0.1 # Нужен только для VPN
+	#TransPort 10.8.0.1:9040 # Нужно только для работы через VPN
 
 Если нужен прокси tor, раскомментируйте и исправьте IP в строке (необязательно, схема будет работать и без этого)
     
@@ -91,42 +98,18 @@
 Настройка прошивки
 ------------------
 
-* Отредактируйте /opt/etc/init.d/S10iptables:
-
-	```
-	#!/bin/sh
-
-	case "$1" in
-	start|update)
-			# add iptables custom rules
-			echo "firewall started"
-			[ -d '/opt/etc' ] || exit 0
-			# rublock redirect to tor
-			iptables -t nat -A PREROUTING -p tcp -m set --match-set rublock dst -j REDIRECT --to-ports 9040
-			# .onion redirect to tor
-			iptables -t nat -A PREROUTING -p tcp -d 10.254.0.0/16 -j REDIRECT --to-ports 9040
-			;;
-	stop)
-			# delete iptables custom rules
-			echo "firewall stopped"
-			;;
-	*)
-			echo "Usage: $0 {start|stop|update}"
-			exit 1
-			;;
-	esac
-	```
-
-	Файл может содержать другие команды которые трогать не нужно. Нужно добавить блок
+В веб-интерфейсе роутера на странице [Персонализация > Скрипты] (http://my.router/Advanced_Scripts_Content.asp)
+добавит в "Выполнить после перезапуска правил брандмауэра":
 
 	```
 	# rublock redirect to tor
-	iptables -t nat -A PREROUTING -p tcp -m set --match-set rublock dst -j REDIRECT --to-ports 9040
+	iptables -t nat -I PREROUTING -p tcp -m set --match-set rublock dst -j REDIRECT --to-ports 9040
 	# .onion redirect to tor
-	iptables -t nat -A PREROUTING -p tcp -m set --match-set onion dst -j REDIRECT --to-ports 9040
+	iptables -t nat -I PREROUTING -p tcp -m set --match-set onion dst -j REDIRECT --to-ports 9040
 	```
 
-* В веб-интерфейсе роутера на странице [Персонализация > Скрипты] (http://my.router/Advanced_Scripts_Content.asp) отредактируйте поле "Выполнить после полного запуска маршрутизатора:", раскоментировав две строчки:
+
+* Там же отредактируйте поле "Выполнить после полного запуска маршрутизатора:", раскоментировав две строчки и добавив:
 
     ```
 	modprobe ip_set_hash_ip
