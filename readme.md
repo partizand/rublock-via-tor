@@ -62,18 +62,18 @@
 
 Для настройки прозрачного прокси в Tor в конфигурационном файле /opt/etc/tor/torrc добавляем в конец:
 
-	ExcludeExitNodes {RU} # Заблокировать выходные ноды из России
 	AutomapHostsOnResolve 1
-	#TransListenAddress 10.8.0.1 # Нужен только для VPN
-	TransPort 9040
+	TransPort 127.0.0.1:9040 # Прозрачный прокси
+	#TransPort 10.8.0.1:9040 # Нужно только для работы через VPN
 	DNSPort 9053
+	ExcludeExitNodes {RU}
 	VirtualAddrNetwork 10.254.0.0/16  # виртуальные адреса для .onion ресурсов
 
-Тем самым прозрачный прокси будет слушать порт 9040, dns тора будет висеть на порту 9053 (Но только для 127.0.0.1).
+Тем самым прозрачный прокси будет слушать порт 9040, dns тора будет висеть на порту 9053.
 
 Если нужна работа для клиентов VPN сервера, расскоментируйте строку, указав в ней адрес VPN сервера роутера (можно найти [здесь] (http://my.router/vpnsrv.asp#cfg) "Локальный IP-адрес VPN-сервера")
 
-	#TransListenAddress 10.8.0.1 # Нужен только для VPN
+	#TransPort 10.8.0.1:9040 # Нужно только для работы через VPN
 
 Если нужен прокси tor, раскомментируйте и исправьте IP в строке (необязательно, схема будет работать и без этого)
     
@@ -135,9 +135,11 @@
 			done
 	fi
 	# rublock redirect to tor
-	iptables -t nat -A PREROUTING -p tcp -m set --match-set rublock dst -j REDIRECT --to-ports 9040
+	#iptables -t nat -A PREROUTING -p tcp -m set --match-set rublock dst -j REDIRECT --to-ports 9040
+	iptables -t nat -I PREROUTING -p tcp -m set --match-set rublack-dns dst -j REDIRECT --to-ports 9040
+	iptables -t nat -I PREROUTING -p tcp -m set --match-set rublack-ip dst -j REDIRECT --to-ports 9040
 	# .onion redirect to tor
-	iptables -t nat -A PREROUTING -p tcp -d 10.254.0.0/16 -j REDIRECT --to-ports 9040
+	iptables -t nat -A PREROUTING -p tcp -m set --match-set onion dst -j REDIRECT --to-ports 9040
 	```
 
 * В веб-интерфейсе роутера на странице [Персонализация > Скрипты] (http://my.router/Advanced_Scripts_Content.asp) отредактируйте поле "Выполнить после полного запуска маршрутизатора:", раскоментировав две строчки:
@@ -145,17 +147,28 @@
     ```
 	modprobe ip_set_hash_ip
     modprobe xt_set
+	
+	ipset -N rublack-dns iphash
+	ipset -N rublack-ip iphash
+	ipset -N rublack-ip-tmp iphash
+	ipset -N onion iphash
+	
+	if [ ! -z "$(ipset --swap rublock rublock 2>&1 | grep 'given name does not exist')" ] ; then
+					ipset -N rublock iphash
+					for IP in $(cat /opt/etc/rublock.ips) ; do
+							ipset -A rublock $IP
+					done
+	
+	cat /opt/etc/runblock/runblock.ipset | ipset restore
 	```
 
 * На странице [LAN > DHCP-сервер] (http://my.router/Advanced_DHCP_Content.asp) допишите в поле "Пользовательский файл конфигурации dnsmasq.conf" строчку:
 
-	`conf-file=/opt/etc/rublock.dnsmasq`
-
-* На этой же странице, допишите в поле "Пользовательский файл конфигурации dnsmasq.servers" строчку:
-
-	`server=/onion/127.0.0.1#9053`
-	
-	Добавляет сервер dns для разрешения имен домена .onion. Будут возвращаться виртуальные адреса из указанной в настройке tor подсети.
+	```
+	server=/onion/127.0.0.1#9053
+	ipset=/onion/onion
+	conf-file=/opt/etc/runblock/rublock.dnsmasq
+	```
 
 * На странице [Администрирование - Сервисы] (http://my.router/Advanced_Services_Content.asp) включите "Сервис Cron (планировщик)?".  Добавьте строчку:
 
