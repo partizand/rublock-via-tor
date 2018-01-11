@@ -68,6 +68,9 @@
 	DNSPort 9053
 	ExcludeExitNodes {RU}
 	VirtualAddrNetwork 10.254.0.0/16  # виртуальные адреса для .onion ресурсов
+	ExitPolicy reject *:* # no exits allowed
+	ExitPolicy reject6 *:*
+
 
 Тем самым прозрачный прокси будет слушать порт 9040, dns тора будет висеть на порту 9053 (Но только для 127.0.0.1).
 
