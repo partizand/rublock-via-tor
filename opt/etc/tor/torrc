@@ -207,9 +207,16 @@ User admin
 
 #SOCKSPort 192.168.1.1:9100 # Bind to this address:port too.
 
-AutomapHostsOnResolve 1
 TransPort 192.168.1.1:9040 # Прозрачный прокси
-#TransPort 10.8.0.1:9040 # Нужен только для VPN
+TransPort 10.8.0.1:9040 # Нужен только для VPN
+
+AutomapHostsOnResolve 1
+
 DNSPort 9053
 ExcludeExitNodes {RU}
 VirtualAddrNetwork 10.254.0.0/16  # виртуальные адреса для .onion ресурсов 
+
+ExitPolicy reject *:* # no exits allowed
+ExitPolicy reject6 *:*
+
+
