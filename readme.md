@@ -160,6 +160,8 @@ https://trac.torproject.org/projects/tor/wiki/doc/TransparentProxy#Transparently
 
 [Описание iptables] (http://www.k-max.name/linux/netfilter-iptables-v-linux/)
 
+Скрипт на shell с антизапрет, работа через прокси с автонастройкой https://gist.github.com/dartraiden/d60825f1b3c8956f44c7b62a4d52f966
+
 
 
 
